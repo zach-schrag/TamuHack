@@ -322,7 +322,9 @@ struct ChessBoard {
             std::cout << "|_____";
         }
         std::cout << '|' << std::endl << std::endl << std::endl;
-
+        for(size_t file = 0; file < 8; file++) {
+            std::cout << "  " << file+1 << "   ";
+        }
     }
 
 };

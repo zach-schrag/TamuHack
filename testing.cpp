@@ -8,6 +8,21 @@ void testingChessBoard() {
 
     cb.printBoard();
 
+    bool turn = true;
+
+    while(true) {
+
+        if(turn) {
+
+            cout << "white select piece: ";
+            
+
+
+        } else {
+
+        }
+        turn = !turn;
+    }
 
 }
 
