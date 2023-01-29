@@ -1,34 +1,712 @@
 #include "templates.cpp"
 
-using std::cin, std::cout, std::endl;
+using std::cin, std::cout, std::endl, std::get;
 
-void testingChessBoard() {
+class Game {
 
     ChessBoard cb;
+    
+    bool turn;
 
-    cb.printBoard();
+    public:
 
-    bool turn = true;
+    Game(): cb(), turn(true) {cb.printBoard();}
 
-    while(true) {
-
-        if(turn) {
-
-            cout << "white select piece: ";
-            
-
-
+    ChessSpace& selectPiece() {
+        bool color = turn;
+        if(color) {
+            cout << "white ";
         } else {
-
+            cout << "black ";
         }
-        turn = !turn;
+
+        std::string in;
+
+        cout << "select piece: ";
+
+        cin >> in;
+
+        if(cb.at(in).empty) {
+            cout << "empty square. ";
+            return selectPiece();
+        }
+
+        else if(cb.at(in).piece->color != color) {
+            cout << "wrong color. ";
+            return selectPiece();
+        }
+
+        else {
+            cout << "piece selected: ";
+            cb.at(in).piece->printPiece();
+            return cb.at(in);
+        }
     }
 
-}
+    bool inCheck() {
+        // check paths away from King for threatening piece.
+        
+        if(turn) {
+
+            char rank = get<0>(cb.wkc);
+            char file = get<1>(cb.wkc);
+            char currR = rank;
+            char currF = file;
+            std::string pr;
+            // check rank first
+            // if I find a black rook or queen, return true.
+    
+            for(char i = file; i < 8; i++) {
+                currF++;
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♖" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank;
+            currF = file;
+
+            for(char i = file-1; i > 0; i--) {
+                currF--;
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♖" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            // check col. Same condition as before.
+            for(char i = rank; i < 8; i++) {
+                currR++;
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♖" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank;
+            currF = file;
+
+            for(char i = rank-1; i > 0; i--) {
+                currR--;
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♖" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank;
+            currF = file;
+
+            // check diagonals for black pawns (check direction & proximity!), bishops, queens.
+
+            while(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                currR++; currF++; // checking top right (look for pawn on first go)
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(currR - rank == 1) {
+                        if(pr == "♙") {
+                            return true;
+                        }
+                    }
+                    if(pr == "♗" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+
+            }
+
+            currR = rank; currF = file;
+
+            while(currR > -1 && currR < 6 && currF > 0 && currF < 8) {
+                currR++; currF--; // checking top left (look for pawn on first go)
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(currR - rank == 1) {
+                        if(pr == "♙") {
+                            return true;
+                        }
+                    }
+                    if(pr == "♗" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank; currF = file;
+
+            while(currR > 0 && currR < 8 && currF > -1 && currF < 6) {
+                currR--; currF++; // checking bottom right 
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    
+                    if(pr == "♗" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+
+            }
+
+            currR = rank; currF = file;
+
+            while(currR > 0 && currR < 8 && currF > -1 && currF < 6) {
+                currR--; currF--; // checking bottom left 
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♗" || pr == "♕") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+
+            }
+
+            currR = rank; currF = file;
+
+            // that's all the diagonals... now knight's moves.
+
+            currR = rank+2;
+            currF = file+1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank+2;
+            currF = file-1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-2;
+            currF = file-1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-2;
+            currF = file+1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank+1;
+            currF = file+2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank+1;
+            currF = file-2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-1;
+            currF = file+2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-1;
+            currF = file-2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♘") {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+
+        } else {
+            // black king
+            char rank = get<0>(cb.bkc);
+            char file = get<1>(cb.bkc);
+
+            char currR = rank;
+            char currF = file;
+            std::string pr;
+            // check rank first
+            // if I find a black rook or queen, return true.
+    
+            for(char i = file; i < 8; i++) {
+                currF++;
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♜" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank;
+            currF = file;
+
+            for(char i = file-1; i > 0; i--) {
+                currF--;
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♜" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            // check col. Same condition as before.
+
+            currR = rank;
+            currF = file;
+
+            for(++currR; currR < 8; currR++) {
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♜" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank;
+            currF = file;
+
+            for(char i = rank-1; i > 0; i--) {
+                currR--;
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(pr == "♜" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank;
+            currF = file;
+
+            // check diagonals for black pawns (check direction & proximity!), bishops, queens.
+
+            while(currR > -1 && currR < 6 && currF > -1 && currF < 6) {
+                currR++; currF++; // checking top right
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    
+                    if(pr == "♝" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+
+            }
+
+            currR = rank; currF = file;
+
+            while(currR > -1 && currR < 6 && currF > 0 && currF < 8) {
+                currR++; currF--; // checking top left 
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    
+                    if(pr == "♝" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            currR = rank; currF = file;
+
+            while(currR > 0 && currR < 8 && currF >-1 && currF < 6) {
+                currR--; currF++; // checking bottom right 
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(currF - file == 1) {
+                        if(pr == "♟") {
+                            return true;
+                        }
+                    }
+                    if(pr == "♝" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+
+            }
+
+            currR = rank; currF = file;
+
+            while(currR > 0 && currR < 8 && currF > -1 && currF < 8) {
+                currR--; currF--; // checking bottom left 
+                if(!cb.board[currR][currF].empty) {
+                    pr = cb.board[currR][currF].piece->printRep;
+                    if(file - currF == 1) {
+                        if(pr == "♟") {
+                            return true;
+                        }
+                    }
+                    if(pr == "♝" || pr == "♛") {
+                        return true;
+                    } else {
+                        break;
+                    }
+                }
+
+            }
+
+            // that's all the diagonals... now knight's moves.
+
+            currR = rank+2;
+            currF = file+1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank+2;
+            currF = file-1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-2;
+            currF = file-1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-2;
+            currF = file+1;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank+1;
+            currF = file+2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank+1;
+            currF = file-2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-1;
+            currF = file+2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+
+            currR = rank-1;
+            currF = file-2;
+            if(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+                if(!cb.board[currR][currF].empty) {
+                    if(cb.board[currR][currF].piece->printRep == "♞") {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        
+        return false;
+    }
+
+    bool movingIntoCheck(ChessSpace& cs, std::pair<char, char> dest) {
+        char backupR = cs.piece->rank;
+        char backupF = cs.piece->file;
+
+        ChessPiece backupP;
+        bool needReplacePiece = false;
+        if(!cb.board[get<0>(dest)][get<1>(dest)].empty) {
+           backupP = *(cb.board[get<0>(dest)][get<1>(dest)].piece);
+           needReplacePiece = true;
+        } 
+
+        cb.movePiece(cs, dest);
+        
+        //cout << "checking if moving into check: ";
+        bool ret = inCheck();  // if the altered board presents check, remember that
+        // and reinstate the former board.
+        //cout << std::boolalpha << ret << endl;
+
+        cb.movePiece(cb.board[get<0>(dest)][get<1>(dest)], {backupR, backupF});
+        if(needReplacePiece) {
+            cb.board[backupP.rank][backupP.file].empty = false;
+            cb.board[backupP.rank][backupP.file].piece = new ChessPiece(backupP);
+            if(turn) {
+                cb.replace(cb.board[backupP.rank][backupP.file].piece);
+            } else {
+                cb.replace(cb.board[backupP.rank][backupP.file].piece);
+            }
+        }
+
+        return ret;
+    }
+
+    bool movingThroughPiece(ChessSpace& cs, std::pair<char,char> p) {
+        char file = cs.piece->file;
+        char rank = cs.piece->rank;
+
+        std::string pr = cs.piece->printRep;
+        if(pr == "♞" || pr == "♘" || pr == "♚" || pr == "♔") {
+            return false;
+        }
+
+        char currF = file;
+        char currR = rank;
+
+        char endF = get<1>(p);
+        char endR = get<0>(p);
+
+        for(size_t i = 0; i < std::max(abs(cs.piece->rank - get<0>(p))-1, abs(cs.piece->file - get<1>(p))-1); i++) {
+            if(currF < endF) {
+                currF++;
+            } else if(currF > endF) {
+                currF--;
+            }
+            if(currR > endR) {
+                currR--;
+            } else if(currR < endR) {
+                currR++;
+            }
+
+            if(!cb.board[currR][currF].empty) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
+    std::pair<char,char> selectDest(ChessSpace& cs) {
+        std::string in;
+        std::cout << "move to: ";
+        std::cin >> in;
+
+        if(in == "FUCK") {
+            move();
+        }
+
+        if(cs.piece->isValidMove(std::get<1>(asCoords(in)), std::get<0>(asCoords(in)))) {
+            if(cb.at(in).empty) {
+                if(movingIntoCheck(cs, asCoords(in))) {
+                    cout << "you would be moving into check." << endl;
+                    return selectDest(cs);
+                }
+                
+                if(movingThroughPiece(cs, asCoords(in))) {
+                    cout << "you can't move through other pieces." << endl;
+                    return selectDest(cs);
+                }
+                return asCoords(in);
+            } else if(cb.at(in).piece->color != turn) {
+                if(movingThroughPiece(cs, asCoords(in))) {
+                    cout << "you can't move through other pieces." << endl;
+                    return selectDest(cs);
+                }
+                if(movingIntoCheck(cs, asCoords(in))) {
+                    cout << "you would be moving into check." << endl;
+                    return selectDest(cs);
+                }
+                return asCoords(in);
+            } else {
+                std::cout << "you can't capture your own piece." << std::endl;
+                return selectDest(cs);
+            } 
+        } else {
+            std::cout << "invalid move. ";
+            return selectDest(cs);
+        }
+    }
+
+    bool inCheckMate() {
+
+        if(turn) {
+            // White King
+            
+            for(ChessPiece* cp : cb.whitePieces) {
+                // try all valid moves.
+                ChessSpace& cs = cb.board[cp->rank][cp->file];
+                std::list<std::pair<char,char>> moves = cp->allValidMoves();
+                
+
+                for(std::pair<char,char> dest : moves) {
+                    ChessSpace& csDest = cb.board[std::get<0>(dest)][std::get<1>(dest)];
+
+                    if(!csDest.empty) {
+                        if(csDest.piece->color) {
+                            continue;
+                        }
+                    }
+
+                    if(!movingThroughPiece(cs, dest)) {
+                        if(!movingIntoCheck(cs, dest)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+        } else {
+            // Black King
+
+            for(ChessPiece* cp : cb.blackPieces) {
+                // try all valid moves.
+                ChessSpace& cs = cb.board[cp->rank][cp->file];
+                std::list<std::pair<char,char>> moves = cp->allValidMoves();
+                
+                // std::cout << cp->printRep << endl;
+                for(std::pair<char,char> dest : moves) {
+                    
+                    ChessSpace& csDest = cb.board[std::get<0>(dest)][std::get<1>(dest)];
+
+                    if(!csDest.empty) {
+                        if(!csDest.piece->color) {
+                            continue;
+                        }
+                    }
+                    if(!movingThroughPiece(cs, dest)) {
+                        if(!movingIntoCheck(cs, dest)) {
+                            
+                            //cb.printBoard();
+
+                            //cout << "IT WAS EMPTY" << endl;
+                            //cout << "checkmate avoided by ";
+                            // cs.piece->printPiece();
+                            // cout << " moving to " << char('a'+get<1>(dest)) << get<0>(dest)+1 << endl;
+
+                            // cb.printBoard();
+                            
+                            return false;
+                        
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+
+    }
+
+    void move() {
+        
+        while(true) {
+            
+            if(inCheck()) {
+                cout << "CHECK." << endl;
+                if(inCheckMate()) {
+                    if(turn) {
+                        cout << "CHECKMATE. BLACK WINS." << endl;
+                    } else {
+                        cout << "CHECKMATE. WHITE WINS." << endl;
+                    }
+                    break;
+                }
+            } 
+
+            ChessSpace& cs = selectPiece();
+            cb.movePiece(cs, selectDest(cs));
+            cb.printBoard();
+            turn = !turn;
+        }
+
+    } 
+
+};
 
 int main() {
 
-    testingChessBoard();
+    Game g;
+    g.move();
 
     return 0;
 }

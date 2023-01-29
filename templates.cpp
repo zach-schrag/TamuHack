@@ -1,4 +1,6 @@
 #include <iostream>
+#include <set>
+#include <list>
 
 struct ChessPiece {
     public:
@@ -14,6 +16,9 @@ struct ChessPiece {
                 std::cout << "BLACK ";
             }
         }
+        virtual std::list<std::pair<char,char>> allValidMoves() {
+            return std::list<std::pair<char,char>>();
+        }
 };
 
 /*
@@ -22,6 +27,7 @@ struct ChessPiece {
     I need to update all isValidMove functions (except Knight, King) to check for moving through pieces.
     I need to make Castling a valid move.
     I need to make En Passant a valid move.
+    Need to make friendly fire invalid.
     Need to make pawn promotions
     Check for capture on pawn move (changes move type).
 
@@ -39,13 +45,56 @@ struct King : public ChessPiece {
     }
 
     bool isValidMove(char pF, char pR) override {
-        return (((abs(pF - file) == 1 && pR == rank)) || ((abs(pR-rank) == 1 && pF == file))) && !(pF == file && pR == rank);
-        // difference in one dimension must be one square; the other dimension must match directly.
+        return (abs(pF - file) <= 1) && (abs(pR-rank) <= 1) && !(pF == file && pR == rank);
     }
 
     void printPiece() override {
-        std::cout << "KING at square " << file << +rank << std::endl;
+        std::cout << "KING at square " << char(file+'a') << int(1+rank) << std::endl;
     }
+
+    std::list<std::pair<char,char>> allValidMoves() override {
+        
+        std::list<std::pair<char,char>> ret;
+
+        if(rank+1 < 8) {
+
+            if(file-1 > -1) {
+                ret.push_back({rank+1, file-1});
+            }
+
+            ret.push_back({rank+1, file});
+
+            if(file+1 < 8) {
+                ret.push_back({rank+1, file+1});
+            }
+
+        }
+
+        if(file-1 > -1) {
+            ret.push_back({rank, file-1});
+        }
+
+        if(file+1 < 8) {
+            ret.push_back({rank, file+1});
+        }
+
+        if(rank-1 > -1) {
+            
+            if(file-1 > -1) {
+                ret.push_back({rank-1, file-1});
+            }
+
+            ret.push_back({rank-1, file});
+
+            if(file+1 < 8) {
+                ret.push_back({rank-1, file+1});
+            }
+
+        }
+
+        return ret;
+
+    } 
 
 };
 
@@ -66,7 +115,33 @@ struct Rook : public ChessPiece {
     }
 
     void printPiece() override {
-        std::cout << "ROOK at square " << file << +rank << std::endl;
+        std::cout << "ROOK at square " << char(file+'a') << int(1+rank) << std::endl;
+    }
+
+    std::list<std::pair<char,char>> allValidMoves() override {
+        
+        std::list<std::pair<char,char>> ret;
+
+        // right, left, up, down
+
+        for(char i = file+1; i < 8; i++) {
+            ret.push_back({rank, i});
+        }
+
+        for(char i = file-1; i < -1; i--) {
+            ret.push_back({rank, i});
+        }
+
+        for(char i = rank+1; i < 8; i++) {
+            ret.push_back({i,file});
+        }
+
+        for(char i = rank-1; i > -1; i--) {
+            ret.push_back({i, file});
+        }
+
+        return ret;
+
     }
 
 };
@@ -88,7 +163,35 @@ struct Bishop : public ChessPiece {
     }
 
     void printPiece() override {
-        std::cout << "BISHOP at square " << file << +rank << std::endl;
+        std::cout << "BISHOP at square " << char(file+'a') << int(1+rank) << std::endl;
+    }
+
+    std::list<std::pair<char,char>> allValidMoves() override {
+        std::list<std::pair<char,char>> ret;
+        // diag up right, diag up left, diag down right, diag down left
+
+        char currR = rank+1; char currF = file+1;
+        while(currR < 8 && currF < 8) {
+            ret.push_back({currR++, currF++});
+        }
+
+        currR = rank+1; currF = file-1;
+        while(currR < 8 && currF > -1) {
+            ret.push_back({currR++, currF--});
+        }
+
+        currR = rank-1; currF = file+1;
+        while(currR > -1 && currF < 8) {
+            ret.push_back({currR--, currF++});
+        }
+
+        currR = rank-1; currF = file-1;
+        while(currR > -1 && currF > -1) {
+            ret.push_back({currR--, currF--});
+        }
+
+        return ret;
+
     }
 
 };
@@ -109,7 +212,52 @@ struct Queen : public ChessPiece {
     }
 
     void printPiece() override {
-        std::cout << "QUEEN at square " << file << +rank << std::endl;
+        std::cout << "QUEEN at square " << char(file+'a') << int(1+rank) << std::endl;
+    }
+
+    std::list<std::pair<char,char>> allValidMoves() override {
+
+        std::list<std::pair<char,char>> ret;
+        for(char i = file+1; i < 8; i++) {
+            ret.push_back({rank, i});
+        }
+
+        for(char i = file-1; i < -1; i--) {
+            ret.push_back({rank, i});
+        }
+
+        for(char i = rank+1; i < 8; i++) {
+            ret.push_back({i,file});
+        }
+
+        for(char i = rank-1; i > -1; i--) {
+            ret.push_back({i, file});
+        }
+
+        ///////////////////////////////////
+
+        char currR = rank+1; char currF = file+1;
+        while(currR < 8 && currF < 8) {
+            ret.push_back({currR++, currF++});
+        }
+
+        currR = rank+1; currF = file-1;
+        while(currR < 8 && currF > -1) {
+            ret.push_back({currR++, currF--});
+        }
+
+        currR = rank-1; currF = file+1;
+        while(currR > -1 && currF < 8) {
+            ret.push_back({currR--, currF++});
+        }
+
+        currR = rank-1; currF = file-1;
+        while(currR > -1 && currF > -1) {
+            ret.push_back({currR--, currF--});
+        }
+
+        return ret;
+
     }
 
 };
@@ -141,7 +289,7 @@ struct Pawn : public ChessPiece {
             // black pawn
 
             if(pF == file) {
-                return (((rank == 7) && (pR == 5)) || (pR == rank - 1));
+                return (((rank == 6) && (pR == 4)) || (pR == rank - 1));
             } else {
                 // check for capture
                 return false;
@@ -153,7 +301,26 @@ struct Pawn : public ChessPiece {
     }
 
     void printPiece() override {
-        std::cout << "PAWN at square " << file << +rank << std::endl;
+        std::cout << "PAWN at square " << char(file+'a') << int(1+rank) << std::endl;
+    }
+
+    std::list<std::pair<char,char>> allValidMoves() override {
+        std::list<std::pair<char,char>> ret;
+
+        if(color) {
+            ret.push_back({rank+1, file});
+            if(rank == 1) {
+                ret.push_back({rank+2,file});
+            }
+        } else {
+            ret.push_back({rank-1, file});
+            if(rank == 6) {
+                ret.push_back({rank-2,file});
+            }
+        }
+
+        return ret;
+
     }
 
 };
@@ -174,7 +341,40 @@ struct Knight : public ChessPiece {
     }
 
     void printPiece() override {
-        std::cout << "KANIGGIT at square " << file << +rank << std::endl;
+        std::cout << "KANIGGIT at square " << char(file+'a') << int(1+rank) << std::endl;
+    }
+
+    std::list<std::pair<char,char>> allValidMoves() override {
+
+        std::list<std::pair<char,char>> ret;
+
+        if(rank+2 < 8 && file+1 < 8) {
+            ret.push_back({rank+2, file+1});
+        } 
+        if(rank+1 < 8 && file+2 < 8) {
+            ret.push_back({rank+1, file+2});
+        }
+        if(rank-2 > -1 && file+1 < 8) {
+            ret.push_back({rank-2, file+1});
+        }
+        if(rank+1 < 8 && file-2 > -1) {
+            ret.push_back({rank+1, file-2});
+        }
+        if(rank-1 > -1 && file+2 < 8) {
+            ret.push_back({rank-1, file+2});
+        }
+        if(rank+2 < 8 && file-1 > -1) {
+            ret.push_back({rank+2, file-1});
+        }
+        if(rank-1 > -1 && file-2 > -1) {
+            ret.push_back({rank-1, file-2});
+        }
+        if(rank-2 > -1 && file-1 > -1) {
+            ret.push_back({rank-2, file-1});
+        }
+
+        return ret;
+
     }
 
 
@@ -190,9 +390,22 @@ struct ChessSpace {
     }
 };
 
+std::pair<char,char> asCoords(std::string str) {
+    return {(str.at(1)-'1'),(str.at(0)-'a')};
+}
+
 struct ChessBoard {
     // □ ■
     ChessSpace board[8][8];
+    std::pair<char, char> wkc; // white King coordinates
+    std::pair<char, char> bkc; // black King coordinates
+
+    std::set<ChessPiece*> whitePieces;
+    std::set<ChessPiece*> blackPieces;
+
+    ChessSpace& at(std::string coord) {
+        return board[(coord.at(1)-'1')][coord.at(0)-'a'];
+    }
 
     void putPiece(std::string pType, char file, char rank, bool color) {
         ChessSpace& cpr = board[rank][file];
@@ -230,6 +443,13 @@ struct ChessBoard {
             std::cout << "fuck you asshole" << std::endl;
             cpr.empty = true;
         }
+
+        if(color == true) {
+            whitePieces.insert(cpr.piece);
+        } else {
+            blackPieces.insert(cpr.piece);
+        }
+
     }
 
     ChessBoard() {
@@ -268,6 +488,8 @@ struct ChessBoard {
         putPiece("king",4,7,false);
         putPiece("queen",3,7,false);
 
+        wkc = {0,4}; bkc = {7,4};
+
     }
 
     void printBoard() {
@@ -284,25 +506,22 @@ struct ChessBoard {
                 std::cout << '_' << std::endl;
             }
             
-            std::cout << 8-rank;
+            std::cout << ' ';
             for(size_t file = 0; file < 8; file++) {
                 std::cout << "|";
-                if(board[7-rank][file].empty) {
-                    if(((8-rank)+file) % 2 == 0) {
-                        std::cout << "■■■■■"; // white
-                    } else {
-                        std::cout << "□□□□□"; // black
-                    }
+                if(((8-rank)+file) % 2 == 0) {
+                    std::cout << "■■■■■"; // white
                 } else {
-                    std::cout << "     ";
+                    std::cout << "□□□□□"; // black
                 }
                 
                 // if theres a piece, print its representation
             }
             std::cout << "|" << std::endl;
-            std::cout << ' ';
+            std::cout << 8-rank;
             for(size_t file = 0; file < 8; file++) {
                 std::cout << "|";
+                
                 if(board[7-rank][file].empty) {
                     if(((8-rank)+file) % 2 == 0) {
                         std::cout << "■■■■■"; // white
@@ -310,8 +529,19 @@ struct ChessBoard {
                         std::cout << "□□□□□"; // black
                     }
                 } else {
-                    std::cout << "  " << board[7-rank][file].piece->printRep << "  ";
+                    if(((8-rank)+file) % 2 == 0) {
+                        std::cout << "■ "; // white
+                    } else {
+                        std::cout << "□ "; // black
+                    }
+                    std::cout << board[7-rank][file].piece->printRep;
+                    if(((8-rank)+file) % 2 == 0) {
+                        std::cout << " ■"; // white
+                    } else {
+                        std::cout << " □"; // black
+                    }
                 }
+                
                 
             }
             
@@ -321,12 +551,45 @@ struct ChessBoard {
         for(size_t file = 0; file < 8; file++) {
             std::cout << "|_____";
         }
-        std::cout << '|' << std::endl << std::endl << std::endl;
-        for(size_t file = 0; file < 8; file++) {
-            std::cout << "  " << file+1 << "   ";
+        std::cout << '|' << std::endl;
+        for(char file = 'a'; file < 'a'+8; file++) {
+            std::cout << "    " << file << " ";
+        }
+        std::cout << std::endl << std::endl;
+    }
+
+    void movePiece(ChessSpace& source, std::pair<char,char> destP) {
+        ChessPiece* temp = source.piece;
+        source.empty = true;
+        source.piece = nullptr;
+        ChessSpace& dest = board[std::get<0>(destP)][std::get<1>(destP)];
+        if(!dest.empty) {
+            if(dest.piece->color) {
+                whitePieces.erase(dest.piece);
+            } else {
+                blackPieces.erase(dest.piece);
+            }
+        }
+        delete dest.piece;
+        dest.piece = temp;
+        dest.empty = false;
+        dest.piece->rank = std::get<0>(destP);
+        dest.piece->file = std::get<1>(destP);
+
+        if(dest.piece->printRep ==  "♚") {
+            wkc = destP;
+        } else if(dest.piece->printRep == "♔") {
+            bkc = destP;
+        }
+    }
+
+    void replace(ChessPiece* pointy) {
+        if(pointy->color) {
+            whitePieces.insert(pointy);
+        } else {
+            blackPieces.insert(pointy);
         }
     }
 
 };
-
 
