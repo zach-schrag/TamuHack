@@ -504,10 +504,30 @@ class Game {
         char backupR = cs.piece->rank;
         char backupF = cs.piece->file;
 
-        ChessPiece backupP;
         bool needReplacePiece = false;
+        
+        ChessPiece* backupP = nullptr;
         if(!cb.board[get<0>(dest)][get<1>(dest)].empty) {
-           backupP = *(cb.board[get<0>(dest)][get<1>(dest)].piece);
+            ChessPiece* piece = cb.board[get<0>(dest)][get<1>(dest)].piece;
+            
+           if((piece->outstring()[1] == 'p')) {
+                backupP = new Pawn(piece->file, piece->rank, piece->color);
+           }
+           else if((piece->outstring()[1] == 'q')) {
+                backupP = new Queen(piece->file, piece->rank, piece->color);
+           }
+           else if((piece->outstring()[1] == 'r')) {
+                backupP = new Rook(piece->file, piece->rank, piece->color);
+           }
+           else if((piece->outstring()[1] == 'k')) {
+                backupP = new King(piece->file, piece->rank, piece->color);
+           }
+           else if((piece->outstring()[1] == 'b')) {
+                backupP = new Bishop(piece->file, piece->rank, piece->color);
+           }
+           else if((piece->outstring()[1] == 'n')) {
+                backupP = new Knight(piece->file, piece->rank, piece->color);
+           }
            needReplacePiece = true;
         } 
 
@@ -520,13 +540,9 @@ class Game {
 
         cb.movePiece(cb.board[get<0>(dest)][get<1>(dest)], {backupR, backupF});
         if(needReplacePiece) {
-            cb.board[backupP.rank][backupP.file].empty = false;
-            cb.board[backupP.rank][backupP.file].piece = new ChessPiece(backupP);
-            if(turn) {
-                cb.replace(cb.board[backupP.rank][backupP.file].piece);
-            } else {
-                cb.replace(cb.board[backupP.rank][backupP.file].piece);
-            }
+            cb.board[get<0>(dest)][get<1>(dest)].empty = false;
+            cb.board[get<0>(dest)][get<1>(dest)].piece = backupP;
+            cb.replace(backupP);
         }
 
         return ret;
@@ -717,15 +733,6 @@ class Game {
                     if(!movingThroughPiece(cs, dest)) {
                         if(!movingIntoCheck(cs, dest)) {
                             
-                            //cb.printBoard();
-
-                            //cout << "IT WAS EMPTY" << endl;
-                            //cout << "checkmate avoided by ";
-                            // cs.piece->printPiece();
-                            // cout << " moving to " << char('a'+get<1>(dest)) << get<0>(dest)+1 << endl;
-
-                            // cb.printBoard();
-                            
                             return false;
                         
                         }
@@ -751,6 +758,7 @@ class Game {
                         cout << "CHECKMATE. WHITE WINS." << endl;
                     }
                     std::ofstream fout("board.out");
+                    cb.printBoard();
                     fout << "CHECKMATE" << endl;
                     cb.printBoardAsOutput(fout);
                     fout.close();

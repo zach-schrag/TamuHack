@@ -49,6 +49,8 @@ import numpy as np
 import os
 import time
 
+global end
+end = False
 
 def board_loader(reader):
     board = np.empty((8, 8), dtype=object)  # empty array of type object, with the right size.
@@ -72,6 +74,8 @@ def move_interpreter(src, dest):
     print("moving " + src + " " + dest)
     python_writer.write(src + " " + dest)  # write the move set so that logic can see it.
     python_writer.close()  # close so that the file becomes readable for the logic.
+    if(os.path.isfile("board.txt")):
+        os.remove("board.txt")
     os.rename("move.out", "move.txt")
 
 
@@ -79,16 +83,20 @@ def validate():
     while not os.path.isfile("board.txt"):
         continue
     updater = open("board.txt", "r")  # open the file that the cpp file wrote on to see validity and new board.
-    
-    valid = updater.readline()  # read the validity line
+    valid = updater.readline() 
+    print(valid) # read the validity line
     if valid == "good\n":  # if its good then:
         # print("valid move")  # this is for debug
         board = board_loader(updater)  # load a new board
         # print(board)  # debug
-    elif valid == "CHECKMATE\n":
+    elif valid == "CHECKMATE\n" or valid == "STALEMATE\n":
         board = board_loader(updater)  # load a new board
+        print("well it's a checkmate")
+        updater.close()
+        return np.array([])
     else:
-        return
+        updater.close()
+        return np.array([-1])
         # print("not a valid move")  # debug
     updater.close()
     # close, im not deleting anything because im pretty sure that it is overwritten anyways, plus
@@ -98,8 +106,26 @@ def validate():
     # open("board.txt", "w").close()  # deleting contents of the file
 
 
-while True:
-    src = input("enter a src: ")
-    dest = input("enter a dest: ")
+def move(src, dest):
     move_interpreter(src, dest)
     validate()
+
+move("e2","e3")
+move("h7","h6")
+move("f1","c4")
+move("h8","h7")
+move("d1","f3")
+move("h7","h8")
+move("f3","f7")
+## move("a2","a3")
+
+
+##while True:
+##    src = input("enter a src: ")
+##    dest = input("enter a dest: ")
+##    move_interpreter(src, dest)
+##    if(validate().size == 0):
+##        print("game over")
+##        break
+    
+    

@@ -293,14 +293,12 @@ struct Queen : public ChessPiece {
     }
 
     std::string outstring() override {
-        char ans[3]; ans[2] = '\0';
+        
         if(color) {
-            ans[0] = 'w';
+            return "wq";
         } else {
-            ans[0] = 'b';
+            return "bq";
         }
-        ans[1] = 'q';
-        return ans;
     }
 
 };
