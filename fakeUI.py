@@ -110,22 +110,14 @@ def move(src, dest):
     move_interpreter(src, dest)
     validate()
 
-move("e2","e3")
-move("h7","h6")
-move("f1","c4")
-move("h8","h7")
-move("d1","f3")
-move("h7","h8")
-move("f3","f7")
-## move("a2","a3")
 
 
-##while True:
-##    src = input("enter a src: ")
-##    dest = input("enter a dest: ")
-##    move_interpreter(src, dest)
-##    if(validate().size == 0):
-##        print("game over")
-##        break
+while True:
+    src = input("enter a src: ")
+    dest = input("enter a dest: ")
+    move_interpreter(src, dest)
+    if(validate().size == 0):
+        print("game over")
+        break
     
     
