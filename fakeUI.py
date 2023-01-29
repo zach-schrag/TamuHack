@@ -79,8 +79,7 @@ def validate():
     while not os.path.isfile("board.txt"):
         continue
     updater = open("board.txt", "r")  # open the file that the cpp file wrote on to see validity and new board.
-    if os.path.isfile("move.txt"):
-        os.remove("move.txt")
+    
     valid = updater.readline()  # read the validity line
     if valid == "good\n":  # if its good then:
         # print("valid move")  # this is for debug
@@ -99,17 +98,8 @@ def validate():
     # open("board.txt", "w").close()  # deleting contents of the file
 
 
-move_interpreter("b2", "b3\n")
-time.sleep(1)
-validate()
-
-move_interpreter("b7", "b6\n")
-time.sleep(1)
-validate()
-
-
-# while True:
-#     src = input("enter a src: ")
-#     dest = input("enter a dest: ")
-#     move_interpreter(src + "\n", dest + "\n")
-#     validate()
+while True:
+    src = input("enter a src: ")
+    dest = input("enter a dest: ")
+    move_interpreter(src, dest)
+    validate()
