@@ -1,6 +1,7 @@
 #include <iostream>
 #include <set>
 #include <list>
+#include <fstream>
 
 struct ChessPiece {
     public:
@@ -19,6 +20,7 @@ struct ChessPiece {
         virtual std::list<std::pair<char,char>> allValidMoves() {
             return std::list<std::pair<char,char>>();
         }
+        virtual std::string outstring() {return "";}
 };
 
 /*
@@ -93,6 +95,17 @@ struct King : public ChessPiece {
 
     } 
 
+    std::string outstring() override {
+        char ans[3]; ans[2] = '\0';
+        if(color) {
+            ans[0] = 'w';
+        } else {
+            ans[0] = 'b';
+        }
+        ans[1] = 'k';
+        return ans;
+    }
+
 };
 
 struct Rook : public ChessPiece {
@@ -139,6 +152,17 @@ struct Rook : public ChessPiece {
 
         return ret;
 
+    }
+
+    std::string outstring() override {
+        char ans[3]; ans[2] = '\0';
+        if(color) {
+            ans[0] = 'w';
+        } else {
+            ans[0] = 'b';
+        }
+        ans[1] = 'r';
+        return ans;
     }
 
 };
@@ -189,6 +213,17 @@ struct Bishop : public ChessPiece {
 
         return ret;
 
+    }
+
+    std::string outstring() override {
+        char ans[3]; ans[2] = '\0';
+        if(color) {
+            ans[0] = 'w';
+        } else {
+            ans[0] = 'b';
+        }
+        ans[1] = 'b';
+        return ans;
     }
 
 };
@@ -255,6 +290,17 @@ struct Queen : public ChessPiece {
 
         return ret;
 
+    }
+
+    std::string outstring() override {
+        char ans[3]; ans[2] = '\0';
+        if(color) {
+            ans[0] = 'w';
+        } else {
+            ans[0] = 'b';
+        }
+        ans[1] = 'q';
+        return ans;
     }
 
 };
@@ -327,6 +373,17 @@ struct Pawn : public ChessPiece {
 
     }
 
+    std::string outstring() override {
+        char ans[3]; ans[2] = '\0';
+        if(color) {
+            ans[0] = 'w';
+        } else {
+            ans[0] = 'b';
+        }
+        ans[1] = 'p';
+        return ans;
+    }
+
 };
 
 struct Knight : public ChessPiece {
@@ -379,6 +436,17 @@ struct Knight : public ChessPiece {
 
         return ret;
 
+    }
+
+    std::string outstring() override {
+        char ans[3]; ans[2] = '\0';
+        if(color) {
+            ans[0] = 'w';
+        } else {
+            ans[0] = 'b';
+        }
+        ans[1] = 'n';
+        return ans;
     }
 
 
@@ -593,6 +661,23 @@ struct ChessBoard {
         } else {
             blackPieces.insert(pointy);
         }
+    }
+
+    void printBoardAsOutput(std::ofstream& fout) {
+
+        for(char rank = 7; rank > -1; rank--) {
+            for(char file = 0; file < 8; file++) {
+
+                if(board[rank][file].empty) {
+                    fout << "ee ";
+                } else {
+                    fout << board[rank][file].piece->outstring() << ' ';
+                }
+                
+            }
+            fout << std::endl;
+        }
+
     }
 
 };

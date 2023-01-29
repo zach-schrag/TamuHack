@@ -1,4 +1,5 @@
 #include "templates.cpp"
+#include <fstream>
 
 using std::cin, std::cout, std::endl, std::get;
 
@@ -12,7 +13,8 @@ class Game {
 
     Game(): cb(), turn(true) {cb.printBoard();}
 
-    ChessSpace& selectPiece() {
+    ChessSpace& selectPiece(std::ifstream& fin) {
+        // assume selecting a piece works on their end.
         bool color = turn;
         if(color) {
             cout << "white ";
@@ -23,17 +25,17 @@ class Game {
         std::string in;
 
         cout << "select piece: ";
-
-        cin >> in;
+        
+        fin >> in;
 
         if(cb.at(in).empty) {
             cout << "empty square. ";
-            return selectPiece();
+            return selectPiece(fin);
         }
 
         else if(cb.at(in).piece->color != color) {
             cout << "wrong color. ";
-            return selectPiece();
+            return selectPiece(fin);
         }
 
         else {
@@ -566,10 +568,10 @@ class Game {
 
     }
 
-    std::pair<char,char> selectDest(ChessSpace& cs) {
+    std::pair<char,char> selectDest(ChessSpace& cs, std::ifstream& fin) {
         std::string in;
         std::cout << "move to: ";
-        std::cin >> in;
+        fin >> in;
 
         if(in == "FUCK") {
             move();
@@ -579,18 +581,21 @@ class Game {
             if(cb.at(in).empty) {
                 if(movingIntoCheck(cs, asCoords(in))) {
                     cout << "you would be moving into check." << endl;
-                    return selectDest(cs);
+                    return {-1,-1};
+                    //return selectDest(cs, fin);
                 }
                 
                 if(movingThroughPiece(cs, asCoords(in))) {
                     cout << "you can't move through other pieces." << endl;
-                    return selectDest(cs);
+                    return {-1,-1};
+                    //return selectDest(cs, fin);
                 }
 
                 if(cs.piece->printRep == "♙" || cs.piece->printRep == "♟") {
                     if(std::get<1>(asCoords(in)) != cs.piece->file) {
                         cout << "pawns only attack diagonally." << endl;
-                        return selectDest(cs);
+                        return {-1,-1};
+                        //return selectDest(cs, fin);
                     }
 
                     if(std::get<0>(asCoords(in)) == 7) {
@@ -598,7 +603,7 @@ class Game {
                         cout << "promote pawn to (n, b, r, q): ";
                         
                         char choice;
-                        cin >> choice;
+                        fin >> choice;
                         char rank = cs.piece->rank;
                         char file = cs.piece->file;
                         bool color = turn;
@@ -642,20 +647,24 @@ class Game {
             } else if(cb.at(in).piece->color != turn) {
                 if(movingThroughPiece(cs, asCoords(in))) {
                     cout << "you can't move through other pieces." << endl;
-                    return selectDest(cs);
+                    return {-1,-1};
+                    //return selectDest(cs, fin);
                 }
                 if(movingIntoCheck(cs, asCoords(in))) {
                     cout << "you would be moving into check." << endl;
-                    return selectDest(cs);
+                    return {-1,-1};
+                    //return selectDest(cs, fin);
                 }
                 return asCoords(in);
             } else {
                 std::cout << "you can't capture your own piece." << std::endl;
-                return selectDest(cs);
+                return {-1,-1};
+                    //return selectDest(cs, fin);
             } 
         } else {
             std::cout << "invalid move. ";
-            return selectDest(cs);
+            return {-1,-1};
+            //return selectDest(cs, fin);
         }
     }
 
@@ -743,12 +752,31 @@ class Game {
                     }
                     break;
                 }
-            } 
+            }
 
-            ChessSpace& cs = selectPiece();
-            cb.movePiece(cs, selectDest(cs));
-            cb.printBoard();
+            std::ifstream fin("move.txt");
+            while(!fin.good()) {
+                fin.open("move.txt");
+            }
+
+            ChessSpace& cs = selectPiece(fin);
+            std::pair<char,char> dest = selectDest(cs, fin);
+
+
+            std::ofstream fout("board.txt");
+            if(get<0>(dest) == -1 && get<1>(dest) == -1) {
+                fout << "bad" << endl;
+                cb.printBoardAsOutput(fout);
+            } else {
+                cb.movePiece(cs, dest);
+                cb.printBoard();
+                fout << "good" << endl;
+                cb.printBoardAsOutput(fout);
+            }
+            fout.close();
+
             turn = !turn;
+            std::remove("move.txt");
         }
 
     } 
