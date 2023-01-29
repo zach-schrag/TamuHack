@@ -13,8 +13,8 @@ class Game {
 
     Game(): cb(), turn(true) {cb.printBoard();}
 
-    ChessSpace& selectPiece(std::ifstream& fin) {
-        .
+    ChessSpace* selectPiece(std::ifstream& fin) {
+        
         bool color = turn;
         if(color) {
             cout << "white ";
@@ -30,20 +30,18 @@ class Game {
 
         if(cb.at(in).empty) {
             cout << "empty square. ";
-            return *(new ChessSpace());
-            
+            return nullptr;
         }
 
         else if(cb.at(in).piece->color != color) {
             cout << "wrong color. ";
-            return selectPiece(fin);
-            return *(new ChessSpace());
+            return nullptr;
         }
 
         else {
             cout << "piece selected: ";
             cb.at(in).piece->printPiece();
-            return cb.at(in);
+            return &(cb.at(in));
         }
     }
 
@@ -766,15 +764,6 @@ class Game {
                     fout.close();
                     rename("board.out", "board.txt");
                     break;
-                } else {
-                    std::ofstream fout("board.out");
-                    cb.printBoard();
-                    fout << "CHECK " << turn << endl;
-                    cb.printBoardAsOutput(fout);
-                    fout.close();
-                    rename("board.out", "board.txt");
-                    turn = !turn;
-                    continue;
                 }
             } else {
                 if(inCheckMate()) {
@@ -797,8 +786,8 @@ class Game {
                 fin.open("move.txt");
             }
 
-            ChessSpace& cs = selectPiece(fin);
-            if(cs.piece == nullptr) {
+            ChessSpace* cs = selectPiece(fin);
+            if(cs == nullptr) {
                 std::ofstream fout("board.out");
                 fout << "bad " << turn << endl;
                 cb.printBoardAsOutput(fout);
@@ -807,7 +796,7 @@ class Game {
                 rename("board.out", "board.txt");
                 continue;
             }
-            std::pair<char,char> dest = selectDest(cs, fin);
+            std::pair<char,char> dest = selectDest(*(cs), fin);
 
 
             std::ofstream fout("board.out");
@@ -819,9 +808,9 @@ class Game {
                 rename("board.out", "board.txt");
                 continue;
             } else {
-                cb.movePiece(cs, dest);
+                cb.movePiece(*(cs), dest);
                 cb.printBoard();
-                fout << "good " << !turn << endl;
+                fout << "good "; fout << !turn << endl;
                 cb.printBoardAsOutput(fout);
             }
             fout.close();
