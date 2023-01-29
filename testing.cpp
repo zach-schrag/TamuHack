@@ -757,6 +757,20 @@ class Game {
                     rename("board.out", "board.txt");
                     break;
                 }
+            } else {
+                if(inCheckMate()) {
+                    if(turn) {
+                        cout << "STALEMATE. BLACK WINS." << endl;
+                    } else {
+                        cout << "STALEMATE. WHITE WINS." << endl;
+                    }
+                    std::ofstream fout("board.out");
+                    fout << "STALEMATE" << endl;
+                    cb.printBoardAsOutput(fout);
+                    fout.close();
+                    rename("board.out", "board.txt");
+                    break;
+                }
             }
 
             std::ifstream fin("move.txt");
