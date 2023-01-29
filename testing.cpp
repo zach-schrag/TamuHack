@@ -772,6 +772,8 @@ class Game {
             if(get<0>(dest) == -1 && get<1>(dest) == -1) {
                 fout << "bad" << endl;
                 cb.printBoardAsOutput(fout);
+                std::remove("move.txt");
+                continue;
             } else {
                 cb.movePiece(cs, dest);
                 cb.printBoard();
