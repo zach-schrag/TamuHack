@@ -115,7 +115,7 @@ class Game {
 
             // check diagonals for black pawns (check direction & proximity!), bishops, queens.
 
-            while(currR > -1 && currR < 8 && currF > -1 && currF < 8) {
+            while(currR > -1 && currR < 6 && currF > -1 && currF < 6) {
                 currR++; currF++; // checking top right (look for pawn on first go)
                 if(!cb.board[currR][currF].empty) {
                     pr = cb.board[currR][currF].piece->printRep;
@@ -170,7 +170,7 @@ class Game {
 
             currR = rank; currF = file;
 
-            while(currR > 0 && currR < 8 && currF > -1 && currF < 6) {
+            while(currR > 0 && currR < 8 && currF > 0 && currF < 8) {
                 currR--; currF--; // checking bottom left 
                 if(!cb.board[currR][currF].empty) {
                     pr = cb.board[currR][currF].piece->printRep;
@@ -280,7 +280,7 @@ class Game {
             // check rank first
             // if I find a black rook or queen, return true.
     
-            for(char i = file; i < 8; i++) {
+            for(char i = file+1; i < 8; i++) {
                 currF++;
                 if(!cb.board[currR][currF].empty) {
                     pr = cb.board[currR][currF].piece->printRep;
@@ -393,7 +393,7 @@ class Game {
 
             currR = rank; currF = file;
 
-            while(currR > 0 && currR < 8 && currF > -1 && currF < 8) {
+            while(currR > 0 && currR < 8 && currF > 0 && currF < 8) {
                 currR--; currF--; // checking bottom left 
                 if(!cb.board[currR][currF].empty) {
                     pr = cb.board[currR][currF].piece->printRep;
@@ -586,6 +586,58 @@ class Game {
                     cout << "you can't move through other pieces." << endl;
                     return selectDest(cs);
                 }
+
+                if(cs.piece->printRep == "♙" || cs.piece->printRep == "♟") {
+                    if(std::get<1>(asCoords(in)) != cs.piece->file) {
+                        cout << "pawns only attack diagonally." << endl;
+                        return selectDest(cs);
+                    }
+
+                    if(std::get<0>(asCoords(in)) == 7) {
+                        // pawn promotion at rank 8
+                        cout << "promote pawn to (n, b, r, q): ";
+                        
+                        char choice;
+                        cin >> choice;
+                        char rank = cs.piece->rank;
+                        char file = cs.piece->file;
+                        bool color = turn;
+
+                        if(turn) {
+                            cb.whitePieces.erase(cs.piece);
+                        } else {
+                            cb.blackPieces.erase(cs.piece);
+                        }
+
+                        delete cs.piece;
+                        switch(choice) {
+                            case 'n':
+                                cs.piece = new Knight(file, rank, color);
+                                break;
+                            case 'b':
+                                cs.piece = new Bishop(file, rank, color);
+                                break;
+                            case 'r':
+                                cs.piece = new Rook(file, rank, color);
+                                break;
+                            case 'q':
+                                cs.piece = new Queen(file, rank, color);
+                                break;
+                            default:
+                                cout << "uhmm... ok?" << endl;
+                                cs.piece = new Pawn(file, rank, color);
+                        }
+
+
+                        if(turn) {
+                            cb.whitePieces.insert(cs.piece);
+                        } else {
+                            cb.blackPieces.insert(cs.piece);
+                        }
+
+                    }
+                }
+
                 return asCoords(in);
             } else if(cb.at(in).piece->color != turn) {
                 if(movingThroughPiece(cs, asCoords(in))) {

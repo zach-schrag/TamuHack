@@ -23,13 +23,10 @@ struct ChessPiece {
 
 /*
     REMINDER
-    I need to update all isValidMove functions to check for moving into check.
-    I need to update all isValidMove functions (except Knight, King) to check for moving through pieces.
+    
     I need to make Castling a valid move.
     I need to make En Passant a valid move.
-    Need to make friendly fire invalid.
-    Need to make pawn promotions
-    Check for capture on pawn move (changes move type).
+    Need to implement stalemate rules
 
 */
 
@@ -281,6 +278,10 @@ struct Pawn : public ChessPiece {
                 return ((rank == 1 && pR == 3) || (pR == rank + 1));
             } else {
                 // capture check
+                if((abs(pF - file) == 1) && (pR == rank+1)) {
+                    return true;
+                }
+
                 return false;
             }
             
@@ -292,6 +293,9 @@ struct Pawn : public ChessPiece {
                 return (((rank == 6) && (pR == 4)) || (pR == rank - 1));
             } else {
                 // check for capture
+                if((abs(pF - file) == 1) && (pR == rank-1)) {
+                    return true;
+                }
                 return false;
             }
         }
