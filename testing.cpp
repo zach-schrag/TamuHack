@@ -14,7 +14,7 @@ class Game {
     Game(): cb(), turn(true) {cb.printBoard();}
 
     ChessSpace& selectPiece(std::ifstream& fin) {
-        // assume selecting a piece works on their end.
+        .
         bool color = turn;
         if(color) {
             cout << "white ";
@@ -30,12 +30,14 @@ class Game {
 
         if(cb.at(in).empty) {
             cout << "empty square. ";
-            return selectPiece(fin);
+            return *(new ChessSpace());
+            
         }
 
         else if(cb.at(in).piece->color != color) {
             cout << "wrong color. ";
             return selectPiece(fin);
+            return *(new ChessSpace());
         }
 
         else {
@@ -764,6 +766,15 @@ class Game {
                     fout.close();
                     rename("board.out", "board.txt");
                     break;
+                } else {
+                    std::ofstream fout("board.out");
+                    cb.printBoard();
+                    fout << "CHECK " << turn << endl;
+                    cb.printBoardAsOutput(fout);
+                    fout.close();
+                    rename("board.out", "board.txt");
+                    turn = !turn;
+                    continue;
                 }
             } else {
                 if(inCheckMate()) {
@@ -787,19 +798,30 @@ class Game {
             }
 
             ChessSpace& cs = selectPiece(fin);
+            if(cs.piece == nullptr) {
+                std::ofstream fout("board.out");
+                fout << "bad " << turn << endl;
+                cb.printBoardAsOutput(fout);
+                std::remove("move.txt");
+                fout.close();
+                rename("board.out", "board.txt");
+                continue;
+            }
             std::pair<char,char> dest = selectDest(cs, fin);
 
 
             std::ofstream fout("board.out");
             if(get<0>(dest) == -1 && get<1>(dest) == -1) {
-                fout << "bad" << endl;
+                fout << "bad " << turn << endl;
                 cb.printBoardAsOutput(fout);
                 std::remove("move.txt");
+                fout.close();
+                rename("board.out", "board.txt");
                 continue;
             } else {
                 cb.movePiece(cs, dest);
                 cb.printBoard();
-                fout << "good" << endl;
+                fout << "good " << !turn << endl;
                 cb.printBoardAsOutput(fout);
             }
             fout.close();
