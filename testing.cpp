@@ -45,10 +45,12 @@ class Game {
         }
     }
 
-    bool inCheck() {
+    bool inCheck(bool player) {
         // check paths away from King for threatening piece.
         
-        if(turn) {
+        bool b = player;
+
+        if(b) {
 
             char rank = get<0>(cb.wkc);
             char file = get<1>(cb.wkc);
@@ -375,7 +377,7 @@ class Game {
 
             currR = rank; currF = file;
 
-            while(currR > 0 && currR < 8 && currF >-1 && currF < 6) {
+            while(currR > 0 && currR < 8 && currF >-1 && currF < 7) {
                 currR--; currF++; // checking bottom right 
                 if(!cb.board[currR][currF].empty) {
                     pr = cb.board[currR][currF].piece->printRep;
@@ -534,7 +536,7 @@ class Game {
         cb.movePiece(cs, dest);
         
         //cout << "checking if moving into check: ";
-        bool ret = inCheck();  // if the altered board presents check, remember that
+        bool ret = inCheck(turn);  // if the altered board presents check, remember that
         // and reinstate the former board.
         //cout << std::boolalpha << ret << endl;
 
@@ -749,7 +751,7 @@ class Game {
         
         while(true) {
             
-            if(inCheck()) {
+            if(inCheck(turn)) {
                 cout << "CHECK." << endl;
                 if(inCheckMate()) {
                     if(turn) {
@@ -759,12 +761,12 @@ class Game {
                     }
                     std::ofstream fout("board.out");
                     cb.printBoard();
-                    fout << "CHECKMATE" << endl;
+                    fout << "CHECKMATE " << turn << endl;
                     cb.printBoardAsOutput(fout);
                     fout.close();
                     rename("board.out", "board.txt");
                     break;
-                }
+                } 
             } else {
                 if(inCheckMate()) {
                     if(turn) {
@@ -810,7 +812,12 @@ class Game {
             } else {
                 cb.movePiece(*(cs), dest);
                 cb.printBoard();
-                fout << "good "; fout << !turn << endl;
+                if(!inCheck(!turn)) {
+                    fout << "good "; fout << !turn << endl;
+                } else {
+                    fout << "CHECK "; fout << !turn << endl;
+                }
+               
                 cb.printBoardAsOutput(fout);
             }
             fout.close();
