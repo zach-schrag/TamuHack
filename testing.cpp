@@ -750,6 +750,11 @@ class Game {
                     } else {
                         cout << "CHECKMATE. WHITE WINS." << endl;
                     }
+                    std::ofstream fout("board.out");
+                    fout << "CHECKMATE" << endl;
+                    cb.printBoardAsOutput(fout);
+                    fout.close();
+                    rename("board.out", "board.txt");
                     break;
                 }
             }
@@ -763,7 +768,7 @@ class Game {
             std::pair<char,char> dest = selectDest(cs, fin);
 
 
-            std::ofstream fout("board.txt");
+            std::ofstream fout("board.out");
             if(get<0>(dest) == -1 && get<1>(dest) == -1) {
                 fout << "bad" << endl;
                 cb.printBoardAsOutput(fout);
@@ -774,6 +779,7 @@ class Game {
                 cb.printBoardAsOutput(fout);
             }
             fout.close();
+            rename("board.out", "board.txt");
 
             turn = !turn;
             std::remove("move.txt");
